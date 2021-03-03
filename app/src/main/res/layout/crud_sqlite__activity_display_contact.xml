@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".DisplayContact">
+    tools:context=".CrudSqlite_DisplayContact">
 
     <LinearLayout
         android:orientation="vertical"
@@ -15,7 +15,32 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="110dp">
+            android:layout_marginTop="25dp">
+
+            <ImageView
+                android:id="@+id/image"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center_horizontal"
+                android:src="@drawable/crud_sqlite__logo"
+                android:layout_marginBottom="15dp">
+            </ImageView>
+
+            <Button
+                android:id="@+id/btnChooseImg"
+                android:layout_width="140dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:background="@drawable/crud_sqlite__button"
+                android:backgroundTint="#A6A3AC"
+                android:onClick="run"
+                android:text="Choose Image"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textSize="16dp"
+                >
+
+            </Button>
 
             <EditText
                 android:id="@+id/editTextName"
@@ -24,7 +49,7 @@
                 android:hint="@string/name"
                 android:elevation="2dp"
                 android:layout_gravity="center"
-                android:layout_marginTop="30dp"
+                android:layout_marginTop="20dp"
                 android:paddingStart="15dp"
                 android:inputType="text"
                 android:background="@drawable/textfield"
@@ -92,10 +117,10 @@
                 android:layout_width="340dp"
                 android:layout_height="55dp"
                 android:layout_gravity="center"
-                android:layout_marginTop="30dp"
+                android:layout_marginTop="20dp"
                 android:text="@string/save"
                 android:textAllCaps="false"
-                android:background="@drawable/button"
+                android:background="@drawable/crud_sqlite__button"
                 android:backgroundTint="#6200EE"
                 android:textColor="@android:color/white"
                 android:onClick="run"

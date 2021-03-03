@@ -1,45 +1,73 @@
 package com.example.sqlitetest;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
-import android.app.Activity;
 import android.app.AlertDialog;
 
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
-public class DisplayContact extends AppCompatActivity {
-    private DBHelper mydb ;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+
+public class CrudSqlite_DisplayContact extends AppCompatActivity {
+    private CrudSqlite_DBHelper mydb ;
 
     TextView name ;
     TextView phone;
     TextView email;
     TextView street;
     TextView place;
+    Button btnChooseImg;
+    ImageView imageView;
     int id_To_Update = 0;
-
+    int REQUEST_CODE_GALLERY = 999;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_display_contact);
+        setContentView(R.layout.crud_sqlite__activity_display_contact);
         name = (TextView) findViewById(R.id.editTextName);
         phone = (TextView) findViewById(R.id.editTextPhone);
         email = (TextView) findViewById(R.id.editTextStreet);
         street = (TextView) findViewById(R.id.editTextEmail);
         place = (TextView) findViewById(R.id.editTextCity);
+        btnChooseImg = findViewById(R.id.btnChooseImg);
+        imageView = findViewById(R.id.image);
+        mydb = new CrudSqlite_DBHelper(this);
 
-        mydb = new DBHelper(this);
-
+        btnChooseImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ActivityCompat.requestPermissions(
+                        CrudSqlite_DisplayContact.this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        REQUEST_CODE_GALLERY
+                );
+            }
+        });
         Bundle extras = getIntent().getExtras();
         if(extras !=null) {
             int Value = extras.getInt("id");
@@ -50,11 +78,12 @@ public class DisplayContact extends AppCompatActivity {
                 id_To_Update = Value;
                 rs.moveToFirst();
 
-                String nam = rs.getString(rs.getColumnIndex(DBHelper.CONTACTS_COLUMN_NAME));
-                String phon = rs.getString(rs.getColumnIndex(DBHelper.CONTACTS_COLUMN_PHONE));
-                String emai = rs.getString(rs.getColumnIndex(DBHelper.CONTACTS_COLUMN_EMAIL));
-                String stree = rs.getString(rs.getColumnIndex(DBHelper.CONTACTS_COLUMN_STREET));
-                String plac = rs.getString(rs.getColumnIndex(DBHelper.CONTACTS_COLUMN_CITY));
+                String nam = rs.getString(rs.getColumnIndex(CrudSqlite_DBHelper.CONTACTS_COLUMN_NAME));
+                String phon = rs.getString(rs.getColumnIndex(CrudSqlite_DBHelper.CONTACTS_COLUMN_PHONE));
+                String emai = rs.getString(rs.getColumnIndex(CrudSqlite_DBHelper.CONTACTS_COLUMN_EMAIL));
+                String stree = rs.getString(rs.getColumnIndex(CrudSqlite_DBHelper.CONTACTS_COLUMN_STREET));
+                String plac = rs.getString(rs.getColumnIndex(CrudSqlite_DBHelper.CONTACTS_COLUMN_CITY));
+                byte[] image = rs.getBlob(rs.getColumnIndex(CrudSqlite_DBHelper.CONTACTS_COLUMN_IMAGE));
 
                 if (!rs.isClosed())  {
                     rs.close();
@@ -62,6 +91,13 @@ public class DisplayContact extends AppCompatActivity {
                 Button b = (Button)findViewById(R.id.btnSave);
                 b.setVisibility(View.INVISIBLE);
 
+                try {
+                    ByteArrayInputStream imageStream = new ByteArrayInputStream(image);
+                    Bitmap bitmap= BitmapFactory.decodeStream(imageStream);
+                    imageView.setImageBitmap(bitmap);
+                } catch (Exception e) {
+                    Log.e("IMage doesnt load",e.toString());
+                }
                 name.setText(nam);
                 name.setFocusable(false);
                 name.setClickable(false);
@@ -86,6 +122,37 @@ public class DisplayContact extends AppCompatActivity {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_CODE_GALLERY) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setType("image/*");
+                startActivityForResult(intent, REQUEST_CODE_GALLERY);
+            }
+            else {
+                Toast.makeText(getApplicationContext(), "You don't have permission to access file location", Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == REQUEST_CODE_GALLERY && resultCode == RESULT_OK && data != null) {
+            Uri uri = data.getData();
+            try {
+                InputStream inputStream = getContentResolver().openInputStream(uri);
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                imageView.setImageBitmap(bitmap);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         Bundle extras = getIntent().getExtras();
@@ -99,6 +166,14 @@ public class DisplayContact extends AppCompatActivity {
             }
         }
         return true;
+    }
+
+    private byte[] imageViewToByte(ImageView image) {
+        Bitmap bitmap = ((BitmapDrawable)image.getDrawable()).getBitmap();
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        byte[] byteArray = stream.toByteArray();
+        return byteArray;
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -137,7 +212,7 @@ public class DisplayContact extends AppCompatActivity {
                                 mydb.deleteContact(id_To_Update);
                                 Toast.makeText(getApplicationContext(), "Deleted Successfully",
                                         Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+                                Intent intent = new Intent(getApplicationContext(), CrudSqlite_MainActivity.class);
                                 startActivity(intent);
                             }
                         })
@@ -162,28 +237,35 @@ public class DisplayContact extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         if(extras !=null) {
             int Value = extras.getInt("id");
-            if(Value>0){
-                if(mydb.updateContact(id_To_Update,name.getText().toString(),
+            if (Value > 0) {
+                if (mydb.updateContact(id_To_Update, name.getText().toString(),
                         phone.getText().toString(), email.getText().toString(),
-                        street.getText().toString(), place.getText().toString())){
+                        street.getText().toString(), place.getText().toString())) {
                     Toast.makeText(getApplicationContext(), "Updated", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+                    Intent intent = new Intent(getApplicationContext(), CrudSqlite_MainActivity.class);
                     startActivity(intent);
-                } else{
+                } else {
                     Toast.makeText(getApplicationContext(), "not Updated", Toast.LENGTH_SHORT).show();
                 }
-            } else{
-                if(mydb.insertContact(name.getText().toString(), phone.getText().toString(),
-                        email.getText().toString(), street.getText().toString(),
-                        place.getText().toString())){
+            } else {
+                try {
+                    mydb.insertContact(name.getText().toString(),
+                            phone.getText().toString(),
+                            email.getText().toString(),
+                            street.getText().toString(),
+                            place.getText().toString(),
+                            imageViewToByte(imageView)
+                    );
                     Toast.makeText(getApplicationContext(), "done",
                             Toast.LENGTH_SHORT).show();
-                } else{
-                    Toast.makeText(getApplicationContext(), "not done",
+                } catch (Exception e) {
+                    Toast.makeText(getApplicationContext(), "not done "+e,
                             Toast.LENGTH_SHORT).show();
                 }
-                Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+
+                Intent intent = new Intent(getApplicationContext(), CrudSqlite_MainActivity.class);
                 startActivity(intent);
+
             }
         }
     }

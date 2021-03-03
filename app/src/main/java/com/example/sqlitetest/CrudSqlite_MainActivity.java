@@ -7,9 +7,6 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.example.sqlitetest.adapter.ContactAdapter;
@@ -18,24 +15,25 @@ import com.example.sqlitetest.model.ContactModel;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class CrudSqlite_MainActivity extends AppCompatActivity {
     public final static String EXTRA_MESSAGE = "MESSAGE";
     private ListView obj;
-    DBHelper mydb;
+    CrudSqlite_DBHelper mydb;
     List<ContactModel> array_list;
     ContactAdapter arrayAdapter;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.crud_sqlite__activity_main);
 
         array_list = new ArrayList();
         arrayAdapter = new ContactAdapter(array_list,this);
 
         obj = (ListView)findViewById(R.id.listView1);
-        mydb = new DBHelper(this);
-
+        mydb = new CrudSqlite_DBHelper(this);
     }
 
     @Override
@@ -62,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
                 Bundle dataBundle = new Bundle();
                 dataBundle.putInt("id",0);
 
-                Intent intent = new Intent(this,DisplayContact.class);
+                Intent intent = new Intent(this, CrudSqlite_DisplayContact.class);
                 intent.putExtras(dataBundle);
 
                 startActivity(intent);

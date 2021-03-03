@@ -9,8 +9,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.example.sqlitetest.DisplayContact;
-import com.example.sqlitetest.R;
+import com.example.sqlitetest.CrudSqlite_DisplayContact;
 import com.example.sqlitetest.model.ContactModel;
 
 import java.util.List;
@@ -63,7 +62,7 @@ public class ContactAdapter extends BaseAdapter {
                 Bundle dataBundle = new Bundle();
                 dataBundle.putInt("id", id_To_Search);
 
-                Intent intent = new Intent(ctx, DisplayContact.class);
+                Intent intent = new Intent(ctx, CrudSqlite_DisplayContact.class);
 
                 intent.putExtras(dataBundle);
                 ctx.startActivity(intent);

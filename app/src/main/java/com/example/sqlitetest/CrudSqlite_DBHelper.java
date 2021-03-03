@@ -1,5 +1,7 @@
 package com.example.sqlitetest;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -9,12 +11,13 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.example.sqlitetest.model.ContactModel;
 
-public class DBHelper extends SQLiteOpenHelper {
+public class CrudSqlite_DBHelper extends SQLiteOpenHelper {
 
-    public static final String DATABASE_NAME = "MyDBName.db";
+    public static final String DATABASE_NAME = "contacts";
     public static final String CONTACTS_TABLE_NAME = "contacts";
     public static final String CONTACTS_COLUMN_ID = "id";
     public static final String CONTACTS_COLUMN_NAME = "name";
@@ -22,9 +25,10 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String CONTACTS_COLUMN_STREET = "street";
     public static final String CONTACTS_COLUMN_CITY = "place";
     public static final String CONTACTS_COLUMN_PHONE = "phone";
+    public static final String CONTACTS_COLUMN_IMAGE = "image";
     private HashMap hp;
 
-    public DBHelper(Context context) {
+    public CrudSqlite_DBHelper(Context context) {
         super(context, DATABASE_NAME , null, 1);
     }
 
@@ -32,8 +36,14 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         // TODO Auto-generated method stub
         db.execSQL(
-                "create table contacts " +
-                        "(id integer primary key, name text,phone text,email text, street text,place text)"
+                "create table "+DATABASE_NAME+
+                        "(id integer primary key, " +
+                        "name text not null," +
+                        "phone text," +
+                        "email text, " +
+                        "street text," +
+                        "place text," +
+                        "image blob )"
         );
     }
 
@@ -44,7 +54,7 @@ public class DBHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public boolean insertContact (String name, String phone, String email, String street,String place) {
+    public boolean insertContact (String name, String phone, String email, String street,String place, byte[] img) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put("name", name);
@@ -52,13 +62,31 @@ public class DBHelper extends SQLiteOpenHelper {
         contentValues.put("email", email);
         contentValues.put("street", street);
         contentValues.put("place", place);
+//        if (!img.isEmpty()) {
+//            try {
+//                FileInputStream fs = new FileInputStream(img);
+//                byte[] imgbyte = new byte[fs.available()];
+//                fs.read(imgbyte);
+//                contentValues.put("image", imgbyte);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+        contentValues.put("image", img);
         db.insert("contacts", null, contentValues);
+
         return true;
     }
-
+    public void clearDatabase(String TABLE_NAME) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String clearDBQuery = "DELETE FROM "+TABLE_NAME;
+        db.execSQL(clearDBQuery);
+    }
     public Cursor getData(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
+
         Cursor res =  db.rawQuery( "select * from contacts where id="+id+"", null );
+        Log.d("data getData",res.toString());
         return res;
     }
 
@@ -95,7 +123,7 @@ public class DBHelper extends SQLiteOpenHelper {
         Cursor res =  db.rawQuery( "select * from contacts", null );
         res.moveToFirst();
 
-        while(res.isAfterLast() == false){
+        while (res.isAfterLast() == false) {
             ContactModel model = new ContactModel(res.getString(res.getColumnIndex(CONTACTS_COLUMN_NAME)),res.getInt(res.getColumnIndex(CONTACTS_COLUMN_ID)));
             array_list.add(model);
             res.moveToNext();
