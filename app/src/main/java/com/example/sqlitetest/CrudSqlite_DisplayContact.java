@@ -96,7 +96,7 @@ public class CrudSqlite_DisplayContact extends AppCompatActivity {
                     Bitmap bitmap= BitmapFactory.decodeStream(imageStream);
                     imageView.setImageBitmap(bitmap);
                 } catch (Exception e) {
-                    Log.e("IMage doesnt load",e.toString());
+                    Log.e("Image doesnt load",e.toString());
                 }
                 name.setText(nam);
                 name.setFocusable(false);
@@ -238,15 +238,24 @@ public class CrudSqlite_DisplayContact extends AppCompatActivity {
         if(extras !=null) {
             int Value = extras.getInt("id");
             if (Value > 0) {
-                if (mydb.updateContact(id_To_Update, name.getText().toString(),
-                        phone.getText().toString(), email.getText().toString(),
-                        street.getText().toString(), place.getText().toString())) {
+                try {
+                    mydb.updateContact(
+                            id_To_Update,
+                            name.getText().toString(),
+                            phone.getText().toString(),
+                            email.getText().toString(),
+                            street.getText().toString(),
+                            place.getText().toString(),
+                            imageViewToByte(imageView)
+                            );
                     Toast.makeText(getApplicationContext(), "Updated", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(getApplicationContext(), CrudSqlite_MainActivity.class);
                     startActivity(intent);
-                } else {
-                    Toast.makeText(getApplicationContext(), "not Updated", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(getApplicationContext(), "not updated "+e,
+                            Toast.LENGTH_SHORT).show();
                 }
+
             } else {
                 try {
                     mydb.insertContact(name.getText().toString(),
